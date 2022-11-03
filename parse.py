@@ -30,22 +30,22 @@ def get_content_from_html(html_text) -> list:
                 "name": item.find("span", class_="catalog-item-caption").get_text().replace("\n", ""),
                 "milleage": item.find("span", class_="catalog-item-mileage").get_text().replace("\n", ""),
                 "price": item.find("span", class_="catalog-item-price").get_text().replace("\n", ""),
-                # "price_som": item.find("span", class_="catalog-item-price")get_text().replace("\n", ""),
-                "description": item.find("span", class_="catalog-item-descr").get_text().replace("\n", ""),
+                "price_som": item.find("span", class_="catalog-item-price").get_text().replace("\n", ""),
+                "description": item.find("span", class_="catalog-item-descr").get_text().replace("\n ", "").replace(" ", ""),
                 "image": item.find("img").get("src")
-
             }
         )
     return cars
 
+
 def safe_data(cars: list) -> None:
     with open(CSV_FILE, "w") as file:
         writer = csv.writer(file, delimiter=",")
-        writer.writerow(["name", "milleage", "price", "description", "image"])
+        writer.writerow(["name", "milleage", "price", "price_som", "description", "image"])
         for car in cars:
             writer.writerow([car["name"], car["milleage"],
-                             car["price"], car["description"],
-                             car["image"]])
+                             car["price"], car["price_som"],
+                             car["description"], car["image"]])
 
 
 def get_result_parse():
@@ -56,3 +56,6 @@ def get_result_parse():
         return cars
 
 get_result_parse()
+
+
+
