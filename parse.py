@@ -1,36 +1,58 @@
+
+
+# s = int("6000$"[0:-1]) * 83
+# print(s)
+
+
 import requests
 from bs4 import BeautifulSoup
+import csv
 
-URL = "https://www.kivano.kg/noutbuki?brands=acer-apple"
+URL = "https://cars.kg/offers"
 HEADERS = {
     "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
-    "acccept": "*/*",
+    "acccept": "*/*"
 }
-LINK = "https://www.kivano.kg"
+CSV_FILE = "car.csv"
+
 
 def get_html(url, header):
     response = requests.get(url, headers=HEADERS)
     return response
 
-def get_content_from_html(html_text):
+def get_content_from_html(html_text) -> list:
     soup = BeautifulSoup(html_text, "html.parser")
-    items = soup.find_all("div", class_="item product_listbox oh")
-    laptops = []
+    items = soup.find_all("a", class_="catalog-list-item")
+    cars = []
     for item in items:
-        laptops.append(
+        cars.append(
             {
-                "title": item.find("div", class_="listbox_title oh").get_text().replace("\n", ""),
-                "description": item.find("div", class_="product_text pull-left").get_text().replace("\n", ""),
-                "price": item.find("div", class_="listbox_price text-center").get_text().replace("\n", ""),
-                "image": LINK + item.find("img").get("src")
+                "name": item.find("span", class_="catalog-item-caption").get_text().replace("\n", ""),
+                "milleage": item.find("span", class_="catalog-item-mileage").get_text().replace("\n", ""),
+                "price": item.find("span", class_="catalog-item-price").get_text().replace("\n", ""),
+                # "price_som": item.find("span", class_="catalog-item-price")get_text().replace("\n", ""),
+                "description": item.find("span", class_="catalog-item-descr").get_text().replace("\n", ""),
+                "image": item.find("img").get("src")
+
             }
         )
-    print(laptops)
+    return cars
+
+def safe_data(cars: list) -> None:
+    with open(CSV_FILE, "w") as file:
+        writer = csv.writer(file, delimiter=",")
+        writer.writerow(["name", "milleage", "price", "description", "image"])
+        for car in cars:
+            writer.writerow([car["name"], car["milleage"],
+                             car["price"], car["description"],
+                             car["image"]])
 
 
 def get_result_parse():
     html = get_html(URL, HEADERS)
     if html.status_code == 200:
-        get_content_from_html(html.text)
+        cars = get_content_from_html(html.text)
+        safe_data(cars)
+        return cars
 
 get_result_parse()
